@@ -62,6 +62,7 @@
       <li><a href="<?php echo $score_card_url; ?>"><?php echo lang('view score card') ?></a></li>
 <?php } // if ?>
 <?php if (active_project()->canEdit(logged_user())) { ?>
+      <li><a href="<?php echo active_project()->getExportToGanttProjectUrl() ?>"><?php echo lang('export to ganttproject') ?></a></li>
       <li><a href="<?php echo active_project()->getEditUrl() ?>"><?php echo lang('edit project') ?></a></li>
       <li><a href="<?php echo active_project()->getEditLogoUrl() ?>"><?php echo lang('edit logo') ?></a></li>
 <?php } // if ?>
