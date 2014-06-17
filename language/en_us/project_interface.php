@@ -129,6 +129,12 @@
     'icalendar subscribe desc' => 'Use this link to load milestone and task data into your favorite calendar application.',
     'icalendar password change notice' => '<strong>Note:</strong> if you change your password the link to the calendar data will also change! You\'ll need to re-subscribe.',
     
+    // Export to GanntProject
+    'export to ganttproject' => 'Export to GanttProject',
+    'not assigned' => 'not assigned',
+    'completed' => 'completed',
+    'open' => 'open',
+    
     // Private
     'private message desc' => 'Private messages are visible only to owner company members. Members of client companies will not be able to see them.',
     'private milestone desc' => 'Private milestones are visible only to owner company members. Members of client companies will not be able to see them.',
