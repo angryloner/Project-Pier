@@ -1094,9 +1094,9 @@
     	echo $tidy;
     
     	// save to WebDAV
-    	$fp = fopen($_SERVER['DOCUMENT_ROOT'] . "/WebDAV/" .$filename,"w");
-    	fwrite($fp,$tidy);
-    	fclose($fp);
+    	//$fp = fopen($_SERVER['DOCUMENT_ROOT'] . "/WebDAV/" .$filename,"w");
+    	//fwrite($fp,$tidy);
+    	//fclose($fp);
     
     	die();
     	
