@@ -771,6 +771,338 @@
     }
 
     /**
+     * Generate .gan file for use in GanttProject
+     *
+     * @access public
+     * @param void
+     * @return null
+     */
+    function download_gantt() {
+    
+    	$project = active_project();
+    
+    	$project_name = $project->getName();
+    	$project_description = $project->getDescription();
+    	$project_users = $project->getVisibleUsers(logged_user());
+    
+    	// XML declaration
+    	$out_project = '<?xml version="1.0" encoding="UTF-8"?>';
+    	 
+    	/* Project settings */
+    	$company =  CompanyWebsite::instance()->getCompany();
+    	$company_name = $company->getName();
+    	$weblink =  $company->getHomepage();
+    	$locale = Localization::instance()->getLocale();
+    	$view_date = date('Y-m-d'); // this could also be the earliest task, milestone or overdue milestone
+    
+    	$out_project .= '
+    			<project name="' .$project_name. '"
+    					 company="' .$company_name. '"
+    					 webLink="' .$weblink. '"
+    					 view-date="' .$view_date. '"
+    					 view-index="0"
+    					 gantt-divider-location="354"
+    					 resource-divider-location="300"
+    					 version="2.0"
+    					 locale="' .$locale. '">';
+    
+    	$out_project .= '<description><![CDATA[' .$project_description. ']]></description>';
+    
+    	/* View settings */
+    	$out_project .= '
+    			<view zooming-state="default:0" id="gantt-chart">
+			        <field id="tpd3" name="Name" width="57" order="0"/>
+			        <field id="tpd4" name="Begin date" width="21" order="1"/>
+			        <field id="tpd5" name="End date" width="21" order="2"/>
+			    </view>
+			    <view id="resource-table">
+			        <field id="0" name="Name" width="50" order="0"/>
+			        <field id="1" name="Default role" width="49" order="1"/>
+			    </view>';
+    
+    	/* Calendar settings */
+    	$out_project .= '
+    			 <calendars>
+			        <day-types>
+			            <day-type id="0"/>
+			            <day-type id="1"/>
+			            <calendar id="1" name="default">
+			                <default-week sun="1" mon="0" tue="0" wed="0" thu="0" fri="0" sat="1"/>
+			                <only-show-weekends value="false"/>
+			                <overriden-day-types/>
+			                <days/>
+			            </calendar>
+			        </day-types>
+			    </calendars>';
+    
+    	/* Tasks and resource allocation  */
+    
+    	// Task settings
+    	$out_task = '
+    			<tasks empty-milestones="true">
+			    	<taskproperties>
+			    	<taskproperty id="tpd0" name="type" type="default" valuetype="icon"/>
+			    	<taskproperty id="tpd1" name="priority" type="default" valuetype="icon"/>
+			    	<taskproperty id="tpd2" name="info" type="default" valuetype="icon"/>
+			    	<taskproperty id="tpd3" name="name" type="default" valuetype="text"/>
+			    	<taskproperty id="tpd4" name="begindate" type="default" valuetype="date"/>
+			    	<taskproperty id="tpd5" name="enddate" type="default" valuetype="date"/>
+			    	<taskproperty id="tpd6" name="duration" type="default" valuetype="int"/>
+			    	<taskproperty id="tpd7" name="completion" type="default" valuetype="int"/>
+			    	<taskproperty id="tpd8" name="coordinator" type="default" valuetype="text"/>
+			    	<taskproperty id="tpd9" name="predecessorsr" type="default" valuetype="text"/>
+			    	</taskproperties>';
+    	 
+    	// Task allocation
+    	$out_allocation = '<allocations>';
+    	 
+    	$count = 0;
+    
+    	// Get project milestones
+    	$milestones = active_project()->getAllMilestones();
+    	 
+    	foreach ($milestones as $milestone) {
+    
+    		$count++;
+    
+    		// Get task lists for milestones
+    		if ($milestone->hasTaskLists()) {
+    
+    			foreach ($milestone->getTaskLists() as $task_list) {
+    					
+    				$task_list_name=$task_list->getObjectName();
+    
+    				// Calculate percentage of task list completed
+    				if (is_array($task_list->getOpenTasks())) {
+    					$openTasks = count($task_list->getOpenTasks());
+    				} else {
+    					$openTasks = 0;
+    				} // if
+    				if (is_array($task_list->getOpenTasks())) {
+    					$completedTasks = count($task_list->getCompletedTasks());
+    				} else {
+    					$completedTasks = 0;
+    				} // if
+    				$totalTasks = $task_list->countAllTasks();
+    				if ($totalTasks>0) {
+    					$percentTasks = round($completedTasks / $totalTasks * 100);
+    				} else {
+    					$percentTasks = 0;
+    				} // if
+    
+    				// Get dates and calculate duration
+    				$start_date = date_create(format_date($task_list->getStartDate(), 'Y-m-d'));
+    				$due_date = date_create(format_date($task_list->getDueDate(), 'Y-m-d'));
+    
+    				$completed = $task_list->getCompletedOn();
+    					
+    				$duration = date_diff($start_date, $due_date);
+    
+    				// Use task list as top level
+    				$out_task .= '
+    						<task id="'.$count.'"
+    							  name="'.$task_list_name.'"
+    							  color="#99ccff"
+    							  meeting="false"
+    							  start="'.format_date($task_list->getStartDate(), 'Y-m-d').'"
+    							  duration="'.$duration->format('%a').'"
+    							  complete="'.$percentTasks.'"
+    							  expand="true">';
+    
+    				// Get tasks on task list
+    				$tasks = $task_list->getTasks();
+    					
+    				if (is_array($tasks)) {
+    					foreach($tasks as $task) {
+    						$count++;
+    
+    						/* Identify if task is completed or not.
+    						 * There is no data available for percentage of a task completed
+    						*  so it's either 100(%) completed or 0 */
+    							
+    						if ($task->isCompleted()) {
+	    						$task_status = lang('completed');
+	    						$task_completion_info = format_date($task->getCompletedOn());
+	    						$completed = 100;
+    						} else {
+    							$task_status = lang('open');
+    							$task_completion_info = format_date($task->getDueDate());
+    							$completed = 0;
+    						}
+    						if ($task->getAssignedTo()) {
+    							$task_assignee = $task->getAssignedTo()->getObjectName();
+    						} else {
+    							$task_assignee = lang('not assigned');
+    						}
+    
+    						// Use the first line of the task details as the task name
+    						$task_details = preg_split("/\n/", $task->getText());
+    						$task_name = $task_details[0];
+    
+    						// Calculate task duration
+    						$start_date = date_create(format_date($task->getStartDate(), 'Y-m-d'));
+    						$due_date = date_create(format_date($task->getDueDate(), 'Y-m-d'));
+    
+    						$duration = date_diff($start_date, $due_date);
+    
+    						/* Add task */
+    						$out_task .= '
+    								<task id="'.$count.'"
+			    						name="'.$task_name.'"
+			    						color="#99ccff"
+			    						meeting="false"
+			    						start="'.format_date($task->getStartDate(), 'Y-m-d').'"
+			    						duration="'.$duration->format('%a').'"
+			    						complete="'.$completed.'"
+			    						expand="true"';
+    
+    						// Add task details as notes if there is more than one line
+    						if (sizeof($task_details) > 1 ) {
+    							$out_task .= '<notes><![CDATA['.$task->getText().']]></notes>';
+    							$out_task .= '</task>';
+	    					} else {
+	    						$out_task .= ' />';
+	    					}
+    
+	    					/* Allocate task.
+	    					* Load is 100(%) because tasks and users are one-to-one.
+	    					* Couldn't work out what 'function' and 'responsible' are for... */
+	    
+	    					$out_allocation .= '
+	    							<allocation task-id="'.$count.'"
+				    					resource-id="'.$task->getAssignedToUserId().'"
+				    					function="0"
+				    					responsible="false"
+				    					load="100.0"/>';
+	    
+	    					} // foreach (task)
+    					} // if
+    
+    					/* Add milestone */
+    					$count++;
+    
+    					$milestone_name = $milestone->getName();
+    					$milestone_due = $milestone->getDueDate();
+    
+    					$out_task .= '
+    							<task id="'.$count.'"
+    								name="'.$milestone_name.'"
+    								color="#99ccff"
+    								meeting="true"
+    								start="'.format_date($milestone->getDueDate(), 'Y-m-d').'"
+    								duration="0" complete="'.$completed.'"
+    								expand="true"';
+    					
+    					// Add milestone description as note
+    					if ($milestone->getDescription() <> "") {
+    						$out_task .= '><notes><![CDATA['.$milestone->getDescription().']]></notes>';
+    						$out_task .= '</task>';
+    					} else {
+    						$out_task .= ' />';
+    					}
+    					$out_task .= '</task>';
+    
+    			} // foreach (task list)
+    		} // if
+    	} // foreach (milestone)
+    
+    	$out_task .= '</tasks>';
+    	
+    	$out_allocation .= '</allocations>';
+    
+    	/* Resources and Roles
+    	 * Resource and role data are handled in the same loop.
+    	 * To keep it simple the contact's title is used as the role. */
+    
+    	$out_resources = '<resources>';
+    
+    	$out_roles = '
+    			<roles roleset-name="Default"/>
+    				<roles>';
+    				foreach ($project_users as $project_user) {
+    					$out_resources .= '
+    						<resource id="' .$project_user->getContact()->getId(). '"
+    							name="'.clean($project_user->getContact()->getDisplayName()). '"
+    							function="' .$project_user->getContact()->getId(). '"
+    							contacts="' .$project_user->getContact()->getEmail(). '"
+								phone="' .$project_user->getContact()->getOfficeNumber(). '"/>';
+
+    					$out_roles .= '
+    							<role id="' .$project_user->getContact()->getId(). '" 
+    								name="' .$project_user->getContact()->getTitle(). '"/>';
+    				} // foreach
+    
+    	$out_resources .= '</resources>';
+    
+    	$out_roles .= '</roles>';
+    
+    	/* Vacation settings - not available in projectpier */
+    	$out_vacations = '</vacations>';
+    
+       /* Task display settings */
+       $out_task_display .= '
+       					<taskdisplaycolumns>
+        					<displaycolumn property-id="tpd2" order="-1" width="75" visible="false"/>
+        					<displaycolumn property-id="tpd7" order="-1" width="75" visible="false"/>
+        					<displaycolumn property-id="tpd8" order="-1" width="75" visible="false"/>
+        					<displaycolumn property-id="tpd6" order="-1" width="75" visible="false"/>
+        					<displaycolumn property-id="tpd10" order="-1" width="75" visible="false"/>
+			        		<displaycolumn property-id="tpd11" order="-1" width="75" visible="false"/>
+			        		<displaycolumn property-id="tpd9" order="-1" width="75" visible="false"/>
+			     		   	<displaycolumn property-id="tpd1" order="-1" width="75" visible="false"/>
+			    		    <displaycolumn property-id="tpd0" order="-1" width="75" visible="false"/>
+			   		     	<displaycolumn property-id="tpd3" order="0" width="199" visible="true"/>
+			    		    <displaycolumn property-id="tpd4" order="1" width="75" visible="true"/>
+			       			<displaycolumn property-id="tpd5" order="2" width="74" visible="true"/>
+			    		</taskdisplaycolumns>';
+    
+    	/* Previous - "These options are related to a feature which is called "Save state"/"Compare to state" 
+    	 * and which is essentially a sort of diff with a baseline.'
+    	 * See explanation here: http://forum.ganttproject.biz/view/20090615020432_-v80icw */
+    	$out_previous = '</previous>';
+    
+    	/* Output */
+   
+    	// Concatenate output in correct order
+    	$dot_gan = $out_project . $out_task . $out_resources . $out_allocation .
+    			   $out_vacations . $out_task_display . $out_previous . $out_roles;
+    
+    	// Tidy XML
+    	$config = array(
+    			'indent'     => true,
+    			'input-xml'  => true,
+        		'output-xml' => true,
+        		 'wrap'       => false);
+
+    	$tidy = new tidy;
+    	$tidy->parseString($dot_gan, $config, 'utf8');
+    	$tidy->cleanRepair();
+    
+    	// Remove new lines from beginning and end of CDATA
+    	$tidy = preg_replace('~>[\s\t\w\n\r]+<\!\[CDATA\[~', '><![CDATA[', $tidy);
+    	$tidy = preg_replace('~]]>\s+<~', ']]><', $tidy);
+    											
+    	// Generate file
+    	header("Cache-Control: no-cache, must-revalidate"); // HTTP/1.1
+    	header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Date in the past
+    	header("Content-type: text/xml");
+    	
+    	$filename = $project_name.".gan";
+    	$filename = clean($filename);
+    	header("Content-Disposition: attachment; filename=\"$filename\";");
+    
+    	echo $tidy;
+    
+    	// save to WebDAV
+    	$fp = fopen($_SERVER['DOCUMENT_ROOT'] . "/WebDAV/" .$filename,"w");
+    	fwrite($fp,$tidy);
+    	fclose($fp);
+    
+    	die();
+    	
+    }	// download_gantt   
+    
+    /**
     * Edit project
     *
     * @param void
