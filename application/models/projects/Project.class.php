@@ -1808,6 +1808,17 @@
       return get_url('project', 'delete_logo', $this->getId());
     } // getDeleteLogoUrl
 
+    /**
+     * Return Export to GanttProject URL
+     *
+     * @access public
+     * @param void
+     * @return string
+     */
+    function getExportToGanttProjectUrl() {
+    	return get_url('project', 'download_gantt', $this->getId());
+    } // getExportToGanttProjectUrl
+    
     // ---------------------------------------------------
     //  Logo
     // ---------------------------------------------------
