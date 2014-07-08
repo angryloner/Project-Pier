@@ -806,7 +806,8 @@
     					 version="2.0"
     					 locale="' .$locale. '">';
     
-    	$out_project .= '<description><![CDATA[' .$project_description. ']]></description>';
+    	$out_project .= '
+    			<description><![CDATA[' .$project_description. ']]></description>';
     
     	/* View settings */
     	$out_project .= '
@@ -865,6 +866,8 @@
     
     		$count++;
     
+    		$milestone_added = false;
+    		
     		// Get task lists for milestones
     		if ($milestone->hasTaskLists()) {
     
@@ -944,7 +947,9 @@
     						$due_date = date_create(format_date($task->getDueDate(), 'Y-m-d'));
     
     						$duration = date_diff($start_date, $due_date);
-    
+						    $duration = $duration->format('%a');
+						    $duration = $duration + 1;
+						    
     						/* Add task */
     						$out_task .= '
     								<task id="'.$count.'"
@@ -952,7 +957,7 @@
 			    						color="#99ccff"
 			    						meeting="false"
 			    						start="'.format_date($task->getStartDate(), 'Y-m-d').'"
-			    						duration="'.$duration->format('%a').'"
+			    						duration="'.$duration.'"
 			    						complete="'.$completed.'"
 			    						expand="true"';
     
@@ -978,13 +983,20 @@
 	    					} // foreach (task)
     					} // if
     
-    					/* Add milestone */
-    					$count++;
-    
-    					$milestone_name = $milestone->getName();
-    					$milestone_due = $milestone->getDueDate();
-    
-    					$out_task .= '
+    					$out_task .= '</task>';
+    						
+    			} // foreach (task list)
+    		} // if
+    		
+    		/* Add milestone */
+    		
+    		if($milestone_added==false){
+    			$count++;
+    		
+    			$milestone_name = $milestone->getName();
+    			$milestone_due = $milestone->getDueDate();
+    		
+    			$out_task .= '
     							<task id="'.$count.'"
     								name="'.$milestone_name.'"
     								color="#99ccff"
@@ -992,18 +1004,20 @@
     								start="'.format_date($milestone->getDueDate(), 'Y-m-d').'"
     								duration="0" complete="'.$completed.'"
     								expand="true"';
-    					
-    					// Add milestone description as note
-    					if ($milestone->getDescription() <> "") {
-    						$out_task .= '><notes><![CDATA['.$milestone->getDescription().']]></notes>';
-    						$out_task .= '</task>';
-    					} else {
-    						$out_task .= ' />';
-    					}
-    					$out_task .= '</task>';
-    
-    			} // foreach (task list)
-    		} // if
+    				
+    			// Add milestone description as note
+    			if ($milestone->getDescription() <> "") {
+    				$out_task .= '><notes><![CDATA['.$milestone->getDescription().']]></notes>';
+    				$out_task .= '</task>';
+    			} else {
+    				$out_task .= ' />';
+    			}
+    			//	$out_task .= '</task>';
+    				
+    			$milestone_added = true;
+    		}
+    		$out_task .= '</task>';
+    		
     	} // foreach (milestone)
     
     	$out_task .= '</tasks>';
