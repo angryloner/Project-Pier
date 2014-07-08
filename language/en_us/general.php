@@ -257,6 +257,7 @@
     'seconds' => 'seconds',
 
     'radio' => 'radio',
+    'installation' => 'Installation',
   ); // array
 
 ?>

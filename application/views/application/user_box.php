@@ -73,7 +73,7 @@
     <?php if(logged_user()->isAdministrator()) { ?>
     <li><a href="<?php echo get_url('administration') ?>"><?php echo lang('administration') ?></a> 
       <ul>
-        <li><span><?php echo lang('company') ?></span></li>
+        <li><span><b><?php echo lang('company') ?></b></span></li>
         <li class="header"><a href="<?php echo get_url('administration', 'company') ?>"><?php echo lang('company') ?></a></li>
         <li><a href="<?php echo get_url('company', 'edit') ?>"><?php echo lang('edit company') ?></a></li>
         <li><a href="<?php echo owner_company()->getAddContactUrl() ?>"><?php echo lang('add contact') ?></a></li>
@@ -85,7 +85,7 @@
   plugin_manager()->do_action('administration_company_dropdown');
   // PLUGIN HOOK
 ?>
-        <li><span><?php echo lang('installation') ?></span></li>
+        <li><span><b><?php echo lang('installation') ?></b></span></li>
         <li class="header"><a href="<?php echo get_url('administration', 'configuration') ?>"><?php echo lang('configuration') ?></a></li>
         <li class="header"><a href="<?php echo get_url('administration', 'plugins') ?>"><?php echo lang('plugins') ?></a></li>
         <li class="header"><a href="<?php echo get_url('administration', 'tools') ?>"><?php echo lang('administration tools') ?></a></li>
@@ -102,9 +102,7 @@
 
     <li class="user"><a href="<?php echo logged_user()->getAccountUrl() ?>"><?php echo lang('view') . ' ' . clean($_userbox_user->getDisplayName()) ?></a>
       <ul>
-        <li><span><?php echo lang('account') ?>:</span></li>
-        <li onclick="audioPlayer('<?php echo logged_user()->getRadioUrl() ?>');"><a href="javascript:void(null);"><?php echo lang('radio') ?></a></li>
-<?php  if (logged_user()->canUpdateProfile(logged_user())) { ?>
+ <?php  if (logged_user()->canUpdateProfile(logged_user())) { ?>
         <li><a href="<?php echo logged_user()->getEditProfileUrl() ?>"><?php echo lang('update profile') ?></a></li>
         <li><a href="<?php echo logged_user()->getEditPasswordUrl() ?>"><?php echo lang('change password') ?></a></li>
 <?php  } // if ?>
@@ -119,29 +117,6 @@
       </ul>
     </li>
 
-    <li><a href=#><img src="<?php echo image_url('icons/language.gif') ?>" /></a><ul>
-        <li><span><?php echo lang('select language') ?>:</span></li>
-<?php
-$base_language = config_option('installation_base_language', 'en_us');
-$languages = array( $base_language => $base_language );
-include(ROOT . '/language/locales.php');
-if ($handle = opendir(ROOT . '/language')) {
-  while (false !== ($file = readdir($handle))) {
-    if ($file != "." && $file != "..") {
-      if (array_key_exists( $file, $locales)) {
-        $languages[$file] = $locales[$file];
-      }
-    }
-  }
-  closedir($handle);
-}
-asort($languages);
-foreach( $languages as $locale => $desc ) {
-  echo '<li><a href="' . get_url('dashboard', 'index', array('language' => $locale) ) . '" >' . $desc . '</a></li>';
-}
-?>
-      </ul>
-    </li>
     <li><a id="logout" class="js-confirm" href="<?php echo get_url('access', 'logout') ?>" title="<?php echo lang('confirm logout') ?>"><?php echo lang('logout') ?></a></li>
   </ul>
 </div>
