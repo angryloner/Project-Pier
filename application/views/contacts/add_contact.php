@@ -173,59 +173,5 @@
     
   </fieldset>
 
-  <fieldset>
-    <legend><?php echo lang('additional') ?></legend>
-
-    <div>
-      <?php echo label_tag(lang('language preferences'), 'contactFormLanguagePreferences') ?>
-      <?php echo text_field('contact[language_preferences]', array_var($contact_data, 'language_preferences'), array('id' => 'contactFormLanguagePreferences')) ?>
-    </div>
-   
-    <div>
-      <?php echo label_tag(lang('food preferences'), 'contactFormFoodPreferences') ?>
-      <?php echo text_field('contact[food_preferences]', array_var($contact_data, 'food_preferences'), array('id' => 'contactFormFoodPreferences')) ?>
-    </div>
-    
-    <div>
-      <?php echo label_tag(lang('license plate'), 'contactFormLicensePlate') ?>
-      <?php echo text_field('contact[license_plate]', array_var($contact_data, 'license_plate'), array('id' => 'contactFormLicensePlate')) ?>
-    </div>
-    
-    <div>
-      <?php echo label_tag(lang('department details'), 'contactFormDepartmentDetails') ?>
-      <?php echo text_field('contact[department_details]', array_var($contact_data, 'department_details'), array('id' => 'contactFormDepartmentDetails')) ?>
-    </div>
-    
-    <div>
-      <?php echo label_tag(lang('location details'), 'contactFormLocationDetails') ?>
-      <?php echo text_field('contact[location_details]', array_var($contact_data, 'location_details'), array('id' => 'contactFormLocationDetails')) ?>
-    </div>
-    
-  </fieldset>
-
-
-
-<?php if (is_array($im_types) && count($im_types)) { ?>
-  <fieldset>
-    <legend><?php echo lang('instant messengers') ?></legend>
-    <table id="im" class="blank">
-      <tr>
-        <th colspan="2"><?php echo lang('im service') ?></th>
-        <th><?php echo lang('value') ?></th>
-        <th><?php echo lang('primary im service') ?></th>
-      </tr>
-<?php foreach ($im_types as $im_type) { ?>
-      <tr>
-        <td><img src="<?php echo $im_type->getIconUrl() ?>" alt="<?php echo $im_type->getName() ?> icon" /></td>
-        <td><label class="checkbox" for="<?php echo 'profileFormIm' . $im_type->getId() ?>"><?php echo $im_type->getName() ?></label></td>
-        <td><?php echo text_field('contact[im_' . $im_type->getId() . ']', array_var($contact_data, 'im_' . $im_type->getId()), array('id' => 'profileFormIm' . $im_type->getId())) ?></td>
-        <td><?php echo radio_field('contact[default_im]', array_var($contact_data, 'default_im') == $im_type->getId(), array('value' => $im_type->getId())) ?></td>
-      </tr>
-<?php } // foreach ?>
-    </table>
-    <p class="desc"><?php echo lang('primary im description') ?></p>
-  </fieldset>
-<?php } // if ?>
-
   <?php echo submit_button($contact->isNew() ? lang('add contact') : lang('edit contact')) ?>
 </form>
