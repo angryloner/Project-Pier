@@ -5,11 +5,7 @@
     <?php if(isset($_userbox_projects) && is_array($_userbox_projects) && count($_userbox_projects)) { ?>
     <li><a href="<?php echo get_url('dashboard', 'my_projects') ?>"><?php echo lang('my projects') ?></a>
       <ul>
-<?php if (logged_user()->canManageProjects()) { ?>
-        <li><a href="<?php echo get_url('project', 'add') ?>"><?php echo lang('add project') ?></a></li>
-        <li><a href="<?php echo get_url('project', 'copy') ?>"><?php echo lang('copy project') ?></a></li>
-<?php } // if ?>
-        <li><span><?php echo lang('projects') ?>:</span></li>
+       
     <?php if(100 > count($_userbox_projects)) { ?>
         <?php foreach($_userbox_projects as $_userbox_project) { ?>
         <li><a href="<?php echo $_userbox_project->getOverviewUrl() ?>"><?php echo clean($_userbox_project->getName()) ?></a></li>
@@ -30,6 +26,11 @@
 </ul></li>
         <?php } // foreach ?>
 <?php } // if ?>
+<?php if (logged_user()->canManageProjects()) { ?>
+        <li><a href="<?php echo get_url('project', 'add') ?>"><?php echo lang('add project') ?></a></li>
+        <li><a href="<?php echo get_url('project', 'copy') ?>"><?php echo lang('copy project') ?></a></li>
+<?php } // if ?>
+
 <?php
   // PLUGIN HOOK
   plugin_manager()->do_action('my_projects_dropdown');
@@ -44,7 +45,7 @@
 <?php if (isset($_userbox_projects) && is_array($_userbox_projects) && count($_userbox_projects)) { ?>
     <li><a href="<?php echo get_url('dashboard', 'my_tasks') ?>"><?php echo lang('my tasks') ?></a>
       <ul>
-        <li><span><?php echo clean(active_project()->getName()) ?>:</span></li>
+        <li><span><b><?php echo clean(active_project()->getName()) ?></b></span></li>
         <li><a href="<?php echo get_url('project', 'overview') ?>"><?php echo lang('overview') ?></a></li>
         <li class="header"><a href="<?php echo get_url('message', 'index') ?>"><?php echo lang('messages') ?></a></li>
 <?php if (ProjectMessage::canAdd(logged_user(), active_project())) { ?>
